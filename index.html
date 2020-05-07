@@ -1,9 +1,20 @@
 <html>
 <head>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
+<style>
+h3 {
+  color: #ccc;
+  margin-bottom: 8px;
+}
+body {
+  background-color: black;
+}
+</style>
 </head>
 
 <body>
+  <h3>Speed</h3>
+  <input type="range" min="1" max="18" value="3" class="slider" id="speed">
 </body>
 
 <script>
@@ -13,6 +24,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 20000 );
 
 const texture2 = new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/land_ocean_ice_cloud_2048.jpg', () => { renderer.render(scene, camera) })
+texture2.anisotropy = 16; // This line increases render accuracy at glancing angles (default is 1)
 
 const geometry = new THREE.SphereBufferGeometry( 50, 32, 16 );
 //const material = new THREE.MeshBasicMaterial();
@@ -28,7 +40,7 @@ scene.add(earth);
 camera.position.z = 3200;
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-const light = new THREE.SpotLight( 0xffffff, 6, 15000, Math.PI / 8);
+const light = new THREE.SpotLight( 0xffffff, 5, 15000, Math.PI / 8);
 light.castShadow = true;
 light.shadow.mapSize.width = 512;
 light.shadow.mapSize.height = 512;
@@ -61,18 +73,21 @@ renderer.render( scene, camera );
 
 window.addEventListener( 'resize', onWindowResize, false );
 
-let month = 0.0;
+let daysElapsed = 0.0;
 rotate();
 
 function rotate() {
   requestAnimationFrame(rotate);
-  earth.rotation.y += Math.PI / 360;
+  let speed = Number(document.getElementById("speed").value);
+  speed = (speed - 1) * (speed * speed);
 
-  month += 0.1 % 12;
+  daysElapsed += 0.0001 * speed;
 
-  console.log(month);
+  earth.rotation.y = (Math.PI * 2) * daysElapsed;
 
-  light.position.set(8000, Math.sin(month / 12 * Math.PI) * 3000, 8000);
+  const polar = (Math.PI * 2) * (daysElapsed / 365)
+
+  light.position.set(Math.sin(polar) * 8000, Math.sin(polar) * 3000, Math.cos(polar) * 8000);
 
   renderer.render( scene, camera );
 }
